@@ -26,6 +26,7 @@
 			let gba;
 			let runCommands = [];
 			let debug = null;
+      const Serializer = new SerializerClass()
 
 			try {
 				gba = new GameBoyAdvance();
@@ -190,6 +191,46 @@
 					e.textContent = 'UNPAUSE';
 				}
 			}
+
+      function save() {
+      gba.pause();
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        console.log(event.target.result)
+        localStorage.setItem("state", event.target.result);
+        gba.runStable()
+      }
+
+      const blob = Serializer.serialize(gba.freeze())
+      reader.readAsDataURL(blob)
+    }
+
+    function dataURItoBlob(dataURI) {
+      let byteString;
+      if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+      else
+        byteString = unescape(dataURI.split(',')[1]);
+
+      let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+      let ia = new Uint8Array(byteString.length);
+      for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+      }
+
+      return new Blob([ia], {type:mimeString});
+  }
+    
+      function load() {
+        const state = dataURItoBlob(localStorage.getItem("state"))
+        Serializer.deserialize(state, function (out) {
+          gba.pause();
+          gba.defrost(out);
+          gba.runStable();
+        });
+      }
 
 			function screenshot() {
 				let canvas = gba.indirectCanvas;
@@ -380,13 +421,15 @@
 				/>
 			</div>
 			<div id="ingame" class="hidden">
-				<button id="pause" class="bigbutton" onclick="togglePause()">
+        <button id="pause" class="bigbutton" onclick="togglePause()">
 					PAUSE
 				</button>
 				<button class="bigbutton" onclick="reset()">RESET</button>
 				<button onclick="gba.downloadSavedata()">
 					Download Savegame
 				</button>
+        <button class="bigbutton" onclick="save()">SAVE</button>
+        <button class="bigbutton" onclick="load()">LOAD</button>
 				<button onclick="screenshot()">Screenshot</button>
 				<button onclick="fullScreen()">Full screen</button>
 				<label id="pixelated">
@@ -415,7 +458,7 @@
 				<p id="openDebug" onclick="enableDebug()">Debugger</p>
 			</div>
 		</section>
-		<section id="instructions">
+		<section id="instructions" style="display: none;">
 			<p>
 				For legal reasons, GBA.js is presented without any included
 				games. Please click Select below to choose a Game Boy Advance
@@ -433,4 +476,8 @@
 			© 2012 – 2013 <a href="http://endrift.com/">Endrift</a>
 		</footer>
 	</body>
+  <script>
+    
+    
+    </script>
 </html>

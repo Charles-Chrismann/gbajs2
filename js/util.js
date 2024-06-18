@@ -42,7 +42,7 @@ class Pointer {
 	}
 }
 
-class Serializer {
+class SerializerClass {
 	TAG_INT = 1;
 	TAG_STRING = 2;
 	TAG_STRUCT = 3;
@@ -75,7 +75,7 @@ class Serializer {
 	serialize(stream) {
 		var parts = [];
 		var size = 4;
-		for (i in stream) {
+		for (const i of Object.keys(stream)) {
 			if (stream.hasOwnProperty(i)) {
 				var tag;
 				var head = Serializer.prefix(i);
